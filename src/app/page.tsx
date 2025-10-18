@@ -10,10 +10,11 @@ export default function Home() {
   useEffect(() => {
     const test = async () => {
       try {
-        const result = await getDocs(collection(db, 'test'));
-        setStatus(`✅ Firebase 接続成功！`);
+        await getDocs(collection(db, 'test'));
+        setStatus('✅ Firebase 接続成功！');
       } catch (error) {
-        setStatus(`❌ エラー: ${error}`);
+        const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
+        setStatus(`❌ エラー: ${errorMessage}`);
       }
     };
     test();

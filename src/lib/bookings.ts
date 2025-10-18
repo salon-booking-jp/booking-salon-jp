@@ -9,7 +9,6 @@ import {
   where,
   orderBy,
   Timestamp,
-  writeBatch,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Booking } from './types';

@@ -21,22 +21,22 @@ export default function BookingsPage() {
     }
 
     if (user) {
+      const loadBookings = async () => {
+        try {
+          setIsLoading(true);
+          const data = await getBookings(user.uid);
+          setBookings(data);
+        } catch (err) {
+          setError('予約の読み込みに失敗しました');
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
       loadBookings();
     }
-  }, [user, loading]);
-
-  const loadBookings = async () => {
-    try {
-      setIsLoading(true);
-      const data = await getBookings(user!.uid);
-      setBookings(data);
-    } catch (err) {
-      setError('予約の読み込みに失敗しました');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [user, loading, router]);
 
   const handleCancel = async (bookingId: string) => {
     if (!confirm('この予約をキャンセルしてもよろしいですか？')) return;

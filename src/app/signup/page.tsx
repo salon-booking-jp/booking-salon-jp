@@ -5,6 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 
+interface FirebaseError {
+  code?: string;
+  message?: string;
+}
+
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,13 +38,17 @@ export default function SignupPage() {
     try {
       await signUp(email, password);
       router.push('/dashboard');
-    } catch (err: any) {
-      if (err.code === 'auth/email-already-in-use') {
+    } catch (err: unknown) {
+      const firebaseError = err as FirebaseError;
+
+      if (firebaseError?.code === 'auth/email-already-in-use') {
         setError('このメールアドレスは既に使用されています');
-      } else if (err.code === 'auth/invalid-email') {
+      } else if (firebaseError?.code === 'auth/invalid-email') {
         setError('有効なメールアドレスを入力してください');
+      } else if (firebaseError instanceof Error) {
+        setError(firebaseError.message || 'サインアップに失敗しました');
       } else {
-        setError(err.message || 'サインアップに失敗しました');
+        setError('サインアップに失敗しました');
       }
     } finally {
       setLoading(false);
