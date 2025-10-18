@@ -63,7 +63,8 @@ export async function updateBooking(
 ) {
   try {
     const bookingRef = doc(db, 'salons', salonId, 'bookings', bookingId);
-    const updateData = { ...updates };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: any = { ...updates };
 
     if (updates.startTime) {
       updateData.startTime = Timestamp.fromDate(updates.startTime);
