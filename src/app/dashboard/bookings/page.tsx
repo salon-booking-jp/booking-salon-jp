@@ -1,149 +1,111 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth-context';
-import { getBookings, cancelBooking } from '@/lib/bookings';
-import { Booking } from '@/lib/types';
-import Link from 'next/link';
+import { useState } from 'react';
+import { useBookingManagement } from '@/hooks/useBookingManagement';
+import { BookingTable } from '@/components/BookingTable';
+import { BookingFilterComponent } from '@/components/BookingFilter';
+import { BookingFilter, BookingWithId } from '@/lib/types';
 
 export default function BookingsPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  // テスト用：ハードコードされた salonId
+  const salonId = 'salon-123';
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-      return;
-    }
+  const {
+    bookings,
+    filteredBookings,
+    loading,
+    error,
+    filterBookings,
+    cancelBooking,
+    assignStylist,
+  } = useBookingManagement(salonId);
 
-    if (user) {
-      const loadBookings = async () => {
-        try {
-          setIsLoading(true);
-          const data = await getBookings(user.uid);
-          setBookings(data);
-        } catch (err) {
-          setError('予約の読み込みに失敗しました');
-          console.error(err);
-        } finally {
-          setIsLoading(false);
-        }
-      };
+  const [editingBooking, setEditingBooking] = useState<BookingWithId | null>(null);
+  const [assigningBookingId, setAssigningBookingId] = useState<string | null>(null);
+  const [stylistName, setStylistName] = useState('');
 
-      loadBookings();
-    }
-  }, [user, loading, router]);
+  const handleFilter = (filter: BookingFilter) => {
+    filterBookings(filter);
+  };
 
-  const handleCancel = async (bookingId: string) => {
-    if (!confirm('この予約をキャンセルしてもよろしいですか？')) return;
-
-    try {
-      await cancelBooking(user!.uid, bookingId);
-      setBookings(bookings.map((b) =>
-        b.id === bookingId ? { ...b, status: 'cancelled' } : b
-      ));
-    } catch (err) {
-      setError('キャンセルに失敗しました');
-      console.error(err);
+  const handleCancelBooking = async (bookingId: string) => {
+    if (confirm('本当にキャンセルしますか？')) {
+      try {
+        await cancelBooking(bookingId);
+        alert('予約をキャンセルしました');
+      } catch (err) {
+        alert('キャンセルに失敗しました');
+      }
     }
   };
 
-  if (loading) return <div className="p-4">読み込み中...</div>;
-  if (!user) return null;
+  const handleAssignStylist = async () => {
+    if (!assigningBookingId || !stylistName) return;
+
+    try {
+      await assignStylist(assigningBookingId, stylistName, stylistName);
+      alert('スタイリストを割り当てました');
+      setAssigningBookingId(null);
+      setStylistName('');
+    } catch (err) {
+      alert('割り当てに失敗しました');
+    }
+  };
+
+  const displayBookings = filteredBookings.length > 0 ? filteredBookings : bookings;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">salon-booking</h1>
-          <Link href="/dashboard" className="text-blue-600 hover:underline">
-            ダッシュボード
-          </Link>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">予約一覧</h2>
-          <Link
-            href="/dashboard/bookings/new"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            新規予約
-          </Link>
-        </div>
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">予約管理</h1>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
-            {error}
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-800">{error}</p>
           </div>
         )}
 
-        {isLoading ? (
-          <div>読み込み中...</div>
-        ) : bookings.length === 0 ? (
-          <div className="text-center py-8 text-gray-600">
-            予約がありません
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full bg-white rounded-lg shadow">
-              <thead className="bg-gray-100 border-b">
-                <tr>
-                  <th className="px-6 py-3 text-left">顧客名</th>
-                  <th className="px-6 py-3 text-left">電話番号</th>
-                  <th className="px-6 py-3 text-left">メニュー</th>
-                  <th className="px-6 py-3 text-left">日時</th>
-                  <th className="px-6 py-3 text-left">ステータス</th>
-                  <th className="px-6 py-3 text-left">アクション</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bookings.map((booking) => (
-                  <tr key={booking.id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-4">{booking.customerName}</td>
-                    <td className="px-6 py-4">{booking.customerPhone}</td>
-                    <td className="px-6 py-4">{booking.serviceType}</td>
-                    <td className="px-6 py-4">
-                      {new Date(booking.startTime).toLocaleString('ja-JP')}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 rounded text-sm ${
-                          booking.status === 'cancelled'
-                            ? 'bg-gray-200 text-gray-700'
-                            : booking.status === 'confirmed'
-                            ? 'bg-green-200 text-green-700'
-                            : 'bg-yellow-200 text-yellow-700'
-                        }`}
-                      >
-                        {booking.status === 'cancelled'
-                          ? 'キャンセル済み'
-                          : booking.status === 'confirmed'
-                          ? '確定'
-                          : '保留中'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {booking.status !== 'cancelled' && (
-                        <button
-                          onClick={() => handleCancel(booking.id)}
-                          className="text-red-600 hover:underline"
-                        >
-                          キャンセル
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <BookingFilterComponent onFilter={handleFilter} />
+
+        {assigningBookingId && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h3 className="font-semibold mb-2">スタイリストを割り当て</h3>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="スタイリスト名"
+                value={stylistName}
+                onChange={(e) => setStylistName(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+              />
+              <button
+                onClick={handleAssignStylist}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                割り当て
+              </button>
+              <button
+                onClick={() => setAssigningBookingId(null)}
+                className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
+              >
+                キャンセル
+              </button>
+            </div>
           </div>
         )}
+
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <BookingTable
+            bookings={displayBookings}
+            loading={loading}
+            onCancel={handleCancelBooking}
+            onAssignStylist={setAssigningBookingId}
+          />
+        </div>
+
+        <div className="mt-4 text-sm text-gray-600">
+          合計 {displayBookings.length} 件の予約
+        </div>
       </div>
     </div>
   );
