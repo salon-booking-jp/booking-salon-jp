@@ -1,6 +1,6 @@
 import { adminDb } from './firebase-admin';
 import { BookingRequest } from './types';
-import { Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 
 export async function saveBooking(bookingData: BookingRequest) {
   try {

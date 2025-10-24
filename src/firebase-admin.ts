@@ -11,7 +11,7 @@ let app;
 
 if (getApps().length === 0) {
   app = initializeApp({
-    credential: cert(firebaseAdminConfig as any),
+    credential: cert(firebaseAdminConfig as Parameters<typeof cert>[0]),
   });
 }
 
