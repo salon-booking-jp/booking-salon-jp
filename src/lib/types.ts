@@ -27,7 +27,7 @@ export interface Booking {
   title: string;
   startTime: Date;
   endTime: Date;
-  status: 'confirmed' | 'cancelled' | 'completed';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   notes: string;
   createdAt: Date;
   updatedAt: Date;
