@@ -7,7 +7,6 @@ import { BookingFilterComponent } from '@/components/BookingFilter';
 import { BookingFilter, BookingWithId } from '@/lib/types';
 
 export default function BookingsPage() {
-  // テスト用：ハードコードされた salonId
   const salonId = 'salon-123';
 
   const {
@@ -23,9 +22,13 @@ export default function BookingsPage() {
   const [editingBooking, setEditingBooking] = useState<BookingWithId | null>(null);
   const [assigningBookingId, setAssigningBookingId] = useState<string | null>(null);
   const [stylistName, setStylistName] = useState('');
+  const [hasFilter, setHasFilter] = useState(false);  // ← フィルター状態を追跡
 
   const handleFilter = (filter: BookingFilter) => {
     filterBookings(filter);
+    // フィルターが1つ以上設定されているか確認
+    const hasAnyFilter = Object.values(filter).some(v => v !== undefined && v !== null && v !== '');
+    setHasFilter(hasAnyFilter);
   };
 
   const handleCancelBooking = async (bookingId: string) => {
@@ -52,7 +55,8 @@ export default function BookingsPage() {
     }
   };
 
-  const displayBookings = filteredBookings.length > 0 ? filteredBookings : bookings;
+  // フィルターが適用されている場合は filteredBookings、そうでなければ bookings を表示
+  const displayBookings = hasFilter ? filteredBookings : bookings;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">

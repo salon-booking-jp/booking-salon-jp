@@ -73,3 +73,24 @@ export interface BookingRequest extends BookingFormData {
   date: string;
   time: string;
 }
+
+export interface Stylist {
+  id: string;
+  name: string;
+  specialties: string[];
+  availability: {
+    [key: string]: boolean; // 曜日ごとの出勤
+  };
+}
+
+export interface BookingWithId extends Booking {
+  id: string;
+}
+
+export interface BookingFilter {
+  startDate?: Date;
+  endDate?: Date;
+  customerName?: string;
+  status?: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  stylistId?: string;
+}
