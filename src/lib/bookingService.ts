@@ -1,6 +1,6 @@
-import { adminDb } from './firebase-admin';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { db } from './firebase';
 import { BookingRequest } from './types';
-import { Timestamp } from 'firebase-admin/firestore';
 
 export async function saveBooking(bookingData: BookingRequest) {
   try {
@@ -15,6 +15,7 @@ export async function saveBooking(bookingData: BookingRequest) {
       parseInt(minutes)
     );
 
+    // 施術時間を 60 分と仮定
     const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
 
     const booking = {
@@ -33,8 +34,8 @@ export async function saveBooking(bookingData: BookingRequest) {
       title: 'Web予約',
     };
 
-    const bookingsRef = adminDb.collection('bookings');
-    const docRef = await bookingsRef.add(booking);
+    const bookingsRef = collection(db, 'bookings');
+    const docRef = await addDoc(bookingsRef, booking);
 
     return {
       success: true,
@@ -46,22 +47,3 @@ export async function saveBooking(bookingData: BookingRequest) {
     throw error;
   }
 }
-```
-
-### ステップ4: `.env.local` に環境変数を追加
-
-Firebase Console → Project Settings から以下を取得：
-```
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyDqp7m72rYq40Et0XVFXnscug-40tWl9Os
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
-NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abc123def456
-
-# Firebase Admin SDK 用
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBg...\n-----END PRIVATE KEY-----\n"
-
-RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-NEXT_PUBLIC_BASE_URL=http://localhost:3000
