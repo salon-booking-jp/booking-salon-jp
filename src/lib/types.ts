@@ -1,24 +1,75 @@
-export interface Booking {
+// Firestore データモデル
+
+export interface Salon {
   id: string;
-  customerName: string;
-  customerPhone: string;
-  customerEmail: string;
-  staffName: string;
-  serviceType: string;
-  startTime: Date;
-  endTime: Date;
-  price: number;
-  notes: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  userId: string;
   createdAt: Date;
 }
 
-export interface SalonInfo {
-  ownerId: string;
-  email: string;
+export interface Stylist {
+  id: string;
+  salonId: string;
   name: string;
-  phone: string;
-  address: string;
+  specialties: string[];
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface Booking {
+  id: string;
+  salonId: string;
+  stylistId: string;
+  customerId: string;
+  title: string;
+  startTime: Date;
+  endTime: Date;
+  status: 'confirmed' | 'cancelled' | 'completed';
+  notes: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface Customer {
+  id: string;
+  salonId: string;
+  name: string;
+  phone: string;
+  email: string;
+  notes: string;
+  createdAt: Date;
+}
+
+// FullCalendar用に変換したイベント型
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  extendedProps: {
+    salonId: string;
+    stylistId: string;
+    customerId: string;
+    status: string;
+    notes: string;
+  };
+}
+
+// 既存のコードに加えて以下を追加
+
+export interface BookingFormData {
+  customerName: string;
+  phoneNumber: string;
+  email: string;
+  notes?: string;
+}
+
+export interface BookingRequest extends BookingFormData {
+  salonId: string;
+  date: string;
+  time: string;
 }

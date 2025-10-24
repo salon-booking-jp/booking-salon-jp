@@ -1,13 +1,10 @@
 import type { Metadata } from 'next';
-import { AuthProvider } from '@/lib/auth-context';
 import './globals.css';
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+import { AuthProvider } from '@/lib/auth-context';
 
 export const metadata: Metadata = {
-  title: 'Salon Booking System',
-  description: 'Beautiful salon booking system',
+  title: 'Salon Booking',
+  description: '美容室予約管理システム',
 };
 
 export default function RootLayout({
@@ -17,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>
+      <body className="bg-gray-50">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

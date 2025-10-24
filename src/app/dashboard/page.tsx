@@ -1,55 +1,75 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth-context';
+import { useState } from 'react';
+import { BookingCalendar } from '@/components/BookingCalendar';
+import { CalendarEvent } from '@/lib/types';
 
 export default function DashboardPage() {
-  const { user, loading, signOut } = useAuth();
-  const router = useRouter();
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
+  const handleEventClick = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+  };
 
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">読み込み中...</div>;
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  const handleLogout = async () => {
-    await signOut();
-    router.push('/login');
+  const handleDateClick = (date: Date) => {
+    console.log('Selected date:', date);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">salon-booking</h1>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-          >
-            ログアウト
-          </button>
+      <div className="bg-white border-b border-gray-200 p-6">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-gray-900">ダッシュボード</h1>
+          <p className="text-gray-600 mt-2">予約カレンダー</p>
         </div>
-      </nav>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">ようこそ！</h2>
-          <p className="text-gray-600 mb-2">
-            ログイン中：<span className="font-semibold">{user.email}</span>
-          </p>
-          <p className="text-gray-600">
-            このページは後で予約管理画面になります。
-          </p>
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <BookingCalendar
+              onEventClick={handleEventClick}
+              onDateClick={handleDateClick}
+            />
+          </div>
+
+          <div className="space-y-6">
+            {selectedEvent && (
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h2 className="text-xl font-bold mb-4">予約詳細</h2>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm text-gray-600">サービス</label>
+                    <p className="font-semibold">{selectedEvent.title}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">開始時刻</label>
+                    <p className="font-semibold">
+                      {selectedEvent.start.toLocaleString('ja-JP')}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">終了時刻</label>
+                    <p className="font-semibold">
+                      {selectedEvent.end.toLocaleString('ja-JP')}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">ステータス</label>
+                    <span className="inline-block px-3 py-1 rounded text-sm font-semibold bg-green-100 text-green-800">
+                      {selectedEvent.extendedProps.status}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedEvent(null)}
+                  className="mt-4 w-full bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300"
+                >
+                  閉じる
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
